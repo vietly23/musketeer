@@ -22,7 +22,7 @@ import networkx as nx
 import matplotlib
 #matplotlib.use('PDF')
 import pdb
-import cPickle
+import pickle
 import subprocess
 
 np.seterr(all='raise')
@@ -98,7 +98,7 @@ def kronecker_replicate(original=None, params=None):
     kronfit_path = params.get('kronfit_path', 'krontools/kronfit')
     krongen_path = params.get('krongen_path', 'krontools/krongen')
     if not os.path.exists(krongen_path):
-        raise Exception, 'krongen is not found in path "%s".  Please compile krongen (SNAP library) and specify path wtih the parameter "krongen_path"'%krongen_path
+        raise Exception('krongen is not found in path "%s".  Please compile krongen (SNAP library) and specify path wtih the parameter "krongen_path"'%krongen_path)
     
     base_path =  'output/krondump/kron_%d'%npr.randint(1E6)
     stdout_path  = base_path+'_out.txt'
@@ -112,7 +112,7 @@ def kronecker_replicate(original=None, params=None):
         nx.write_edgelist(nx.convert_node_labels_to_integers(original), original_path, data=False)
         matrix_path   = base_path+'_mat.txt'
         num_iterations = params.get('num_iterations', 50)
-        print 'Fitting (%d iterations)...'%num_iterations
+        print('Fitting (%d iterations)...'%num_iterations)
         #fitter_cmdl=["krontools/kronfit", "-gi:%d -i:%s -o:%s > %s 2> %s &"%(num_iterations,original_path,matrix_path,stdout_path,stderr_path)]
         fitter_cmdl=[kronfit_path, "-gi:%d"%num_iterations, "-i:%s"%original_path, 
                       "-o:%s"%matrix_path, ">", "%s"%stdout_path, "2>", "%s"%stderr_path, "&"]
@@ -179,22 +179,22 @@ def test1():
     assert graphutils.graph_santity_test(rand_noise2)
     assert graphutils.graph_santity_test(kron)
 
-    print 'Test 1 passed!'
+    print('Test 1 passed!')
 
 def test2_sf():
     G = nx.path_graph(1000)
     replica = scalefree_replicate(G)
-    print 'Original:'
-    print G.number_of_nodes(), G.number_of_edges()
-    print 'Replica:'
-    print replica.number_of_nodes(), replica.number_of_edges()
+    print('Original:')
+    print(G.number_of_nodes(), G.number_of_edges())
+    print('Replica:')
+    print(replica.number_of_nodes(), replica.number_of_edges())
 
     G = nx.erdos_renyi_graph(900, p=0.01)
     replica = scalefree_replicate(G)
-    print 'Original:'
-    print G.number_of_nodes(), G.number_of_edges()
-    print 'Replica:'
-    print replica.number_of_nodes(), replica.number_of_edges()
+    print('Original:')
+    print(G.number_of_nodes(), G.number_of_edges())
+    print('Replica:')
+    print(replica.number_of_nodes(), replica.number_of_edges())
 
 def watts_strogatz_replicate(original, params=None):
 #warning: for simplicity of coding, the replica uses nodes labeled 0..n-1

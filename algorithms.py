@@ -19,7 +19,7 @@ import numpy.random as npr
 import random, sys
 import networkx as nx
 import pdb
-import cPickle
+import pickle
 import gc
 import simpletesters
 import graphutils
@@ -49,9 +49,9 @@ def chart_paths(G, source, new_edge_horizon, search_method='particles', params=N
     if search_method == 'particles':  #random walk from a neighbor to find any OTHER nbr
         source_nbs = G_neighborsSet(source)
         num_misses = 0
-        for cur_loc in [random_one(source_nbs) for i in xrange(num_trial_particles)]:
+        for cur_loc in [random_one(source_nbs) for i in range(num_trial_particles)]:
             blocked = set([source, cur_loc])
-            for d in xrange(2, new_edge_horizon+1):
+            for d in range(2, new_edge_horizon+1):
                 cur_loc = find_next(G=G, start_node=cur_loc, weighted_step=weighted_step, blocked=blocked, rds=rds, sm=sm)
                 if cur_loc == None:  #stuck in a self-made corner
                     # num_misses += 1
@@ -76,9 +76,9 @@ def chart_paths(G, source, new_edge_horizon, search_method='particles', params=N
         nb_steps = dict.fromkeys(G_adj[source].keys(), np.inf)
         num_misses = 0
         #wishlist: the distance depends on the starting nb.  we need to be consistent and use the same starting nb
-        for cur_loc in [random_one(source_nbs) for i in xrange(num_trial_particles)]:
+        for cur_loc in [random_one(source_nbs) for i in range(num_trial_particles)]:
             blocked = set([source, cur_loc])
-            for d in xrange(2, new_edge_horizon+1):
+            for d in range(2, new_edge_horizon+1):
                 cur_loc = find_next(G=G, start_node=cur_loc, weighted_step=weighted_step, blocked=blocked, rds=rds, sm=sm)
                 if cur_loc == None:  #stuck in a self-made corner
                     #num_misses += 1
@@ -103,9 +103,9 @@ def chart_paths(G, source, new_edge_horizon, search_method='particles', params=N
         num_missed_neighbors = None #not applicable
     elif search_method == 'particles3':     #routes, determines how many neighbors were never reached
         source_nbs = dict.fromkeys(G_adj[source].keys(), False) #which neighbors were reached
-        for cur_loc in [random_one(source_nbs) for i in xrange(num_trial_particles)]:
+        for cur_loc in [random_one(source_nbs) for i in range(num_trial_particles)]:
             blocked = set([source, cur_loc])
-            for d in xrange(2, new_edge_horizon+1):
+            for d in range(2, new_edge_horizon+1):
                 cur_loc = find_next(G=G, start_node=cur_loc, weighted_step=weighted_step, blocked=blocked, rds=rds, sm=sm)
                 if cur_loc == None:  #stuck in a self-made corner
                     break
@@ -120,7 +120,7 @@ def chart_paths(G, source, new_edge_horizon, search_method='particles', params=N
             estimate_of_paths = (source_nbs.__len__() - num_missed_neighbors) * estimate_of_paths / sum(estimate_of_paths)
         num_misses = None #N/A
     else:
-        raise ValueError, 'Unknown search method'
+        raise ValueError('Unknown search method')
 
     #return estimate_of_paths, num_misses
     #WARNING: many of our results were based on setting this to 0.
@@ -241,7 +241,7 @@ def compute_topology_data(G, level, params):
             chance_edge_prob  = 0.
         locality_acceptor = overall_estimates/norm
     else: #fallback
-        locality_acceptor = [0., 0.] + [0.5/(2**d) for d in xrange(1, min(new_edge_horizon,G.number_of_nodes()-2))]
+        locality_acceptor = [0., 0.] + [0.5/(2**d) for d in range(1, min(new_edge_horizon,G.number_of_nodes()-2))]
         chance_edge_prob  = 0.
         if G.number_of_edges() > 10 and nx.density(G) > 0.2:
             print_warning(params, 'Warning: unable to estimate edge locality.')
@@ -271,7 +271,7 @@ def do_coarsen(G, params):
     algorithm_for_coarsening      = params.get('algorithm_for_coarsening', seed_finder_matching) #alt: seed_finder_weight_alg
     seeds, home_nodes, aggregates = algorithm_for_coarsening(G, params)
     if params.get('verbose', True):
-        print 'nn: %d ne: %d (seeds: %d)'%(G.number_of_nodes(),G.number_of_edges(),len(seeds))
+        print('nn: %d ne: %d (seeds: %d)'%(G.number_of_nodes(),G.number_of_edges(),len(seeds)))
 
     free_edges = set()        #edges not within any coarse node.  they will be retained in the coarse graph (many-to-one mapping)
     for seed in seeds:
@@ -364,7 +364,8 @@ def edit_edges_sequential(G, edge_edit_rate, edge_growth_rate, tpl_data, params)
     verbose = params.get('verbose', True)
     try:
         edit_rate = edge_edit_rate != [] and float(edge_edit_rate[0]) or 0.
-        if edit_rate < 0. or edit_rate > 1.: raise
+        if edit_rate < 0. or edit_rate > 1.: 
+            raise
     except:
         print_warning(params, 'Bad or truncated edge edit rate information!  Defaulting to 0')
         edit_rate = 0.
@@ -374,10 +375,10 @@ def edit_edges_sequential(G, edge_edit_rate, edge_growth_rate, tpl_data, params)
         print_warning(params, 'Bad or truncated edge growth rate information!  Defaulting to 0')
         growth_rate = 0.
     if verbose:
-        print '  Edge rates: edit %f, growth %f'%(edit_rate,growth_rate)
+        print('  Edge rates: edit %f, growth %f'%(edit_rate,growth_rate))
     if G.number_of_nodes() == 0:
         if verbose:
-            print 'Num nodes = 0 ... editing canceled'
+            print('Num nodes = 0 ... editing canceled')
         return G
 
     new_edge_horizon   = params.get('new_edge_horizon', estimate_horizon(G))  #no edges added to nodes beyond the horizon
@@ -410,7 +411,7 @@ def edit_edges_sequential(G, edge_edit_rate, edge_growth_rate, tpl_data, params)
     G_adj = G.adj
     G_degree    = lambda u: G_adj[u].__len__()
     G_neighbors = lambda u: G_adj[u].keys()
-    for trial_num in xrange(max(20, num_deletion_trials*target_edges_to_delete)):
+    for trial_num in range(max(20, num_deletion_trials*target_edges_to_delete)):
         if len(deled_edges_set) == target_edges_to_delete:
             break
         u = random.choice(all_nodes)
@@ -443,7 +444,7 @@ def edit_edges_sequential(G, edge_edit_rate, edge_growth_rate, tpl_data, params)
     long_bridging         = params.get('long_bridging', False)
     #whether it should try to build edges to nodes which lost them;  not supported for all edges or for edges lost during node deletion
 
-    for trial_num in xrange(max(20, 3*target_edges_to_add)):
+    for trial_num in range(max(20, 3*target_edges_to_add)):
         if num_remaining_edges_to_add <= 0:  #we might overshoot, hence <= 0 not ==
             break
         if npr.rand() > edge_welfare_fraction or len(deprived_nodes) == 0:
@@ -476,7 +477,7 @@ def edit_edges_sequential(G, edge_edit_rate, edge_growth_rate, tpl_data, params)
         if nx.density(G) > 0.6:
             print_warning(params, 'Is the graph too dense? Density=%.2f'%nx.density(G))
     if verbose:
-        print '\tadded edges: %d, deleted edges: %d'%(num_edges_added,num_edges_deleted)
+        print('\tadded edges: %d, deleted edges: %d'%(num_edges_added,num_edges_deleted))
 
     if 'edit_edges_tester' in params:
         params['edit_edges_tester'](G, added_edges_set, deled_edges_set, tpl_data)
@@ -489,10 +490,11 @@ def edit_edges_sequential(G, edge_edit_rate, edge_growth_rate, tpl_data, params)
 def edit_nodes_sequential(G, node_edit_rate, node_growth_rate, tpl_data, params):
     verbose = params.get('verbose', True)
     if verbose:
-        print 'nn: %d'%G.number_of_nodes()
+        print('nn: %d'%G.number_of_nodes())
     try:
         edit_rate = node_edit_rate != [] and float(node_edit_rate[0]) or 0.
-        if edit_rate < 0. or edit_rate > 1.: raise
+        if edit_rate < 0. or edit_rate > 1.: 
+            raise
     except:
         print_warning(params, 'Bad or truncated node edit rate information!  Defaulting to 0')
         edit_rate = 0.
@@ -502,10 +504,10 @@ def edit_nodes_sequential(G, node_edit_rate, node_growth_rate, tpl_data, params)
         print_warning(params, 'Bad or truncated node growth rate information!  Defaulting to 0')
         growth_rate = 0.
     if verbose:
-        print '  Node rates: edit %f, growth %f'%(edit_rate,growth_rate)
+        print('  Node rates: edit %f, growth %f'%(edit_rate,growth_rate))
     if G.number_of_nodes() == 0:
         if verbose:
-            print 'Num nodes = 0 ... editing canceled'
+            print('Num nodes = 0 ... editing canceled')
         return G
 
     new_edge_horizon   = params.get('new_edge_horizon', estimate_horizon(G))  #no edges added to nodes beyond the horizon
@@ -528,7 +530,7 @@ def edit_nodes_sequential(G, node_edit_rate, node_growth_rate, tpl_data, params)
     #we cache edges-to-add to avoid skewing these statistics during the editing process
     original_nodes = G.nodes()
     added_node_info = {}
-    for i in xrange(num_added_nodes):
+    for i in range(num_added_nodes):
         source_node = random.choice(original_nodes)
         new_node    = new_node_label(G)
         added_node_info[new_node] = G_degree(source_node)
@@ -549,7 +551,7 @@ def edit_nodes_sequential(G, node_edit_rate, node_growth_rate, tpl_data, params)
         G.add_edge(new_node, anchor_node)
         num_edges_added += 1
         num_remaining_nbs_to_add -= 1
-        for trial_num in xrange(max(40, 3*num_remaining_nbs_to_add)):
+        for trial_num in range(max(40, 3*num_remaining_nbs_to_add)):
             if num_remaining_nbs_to_add == 0:
                 break
             v = find_node_to_friend_hits(G=G, head=new_node, tpl_data=tpl_data, params=params, existing_nbs=G_neighbors(new_node))
@@ -583,8 +585,8 @@ def edit_nodes_sequential(G, node_edit_rate, node_growth_rate, tpl_data, params)
         if nx.density(G) > 0.6:
             print_warning(params, 'Is the graph too dense? Density=%.2f'%nx.density(G))
     if verbose:
-        print '\tadded nodes: %d, deleted nodes: %d'%(num_added_nodes,num_deleted_nodes)
-        print '\tadded edges: %d, deleted edges: %d'%(num_edges_added,num_edges_deleted)
+        print('\tadded nodes: %d, deleted nodes: %d'%(num_added_nodes,num_deleted_nodes))
+        print('\tadded edges: %d, deleted edges: %d'%(num_edges_added,num_edges_deleted))
 
     if 'edit_nodes_tester' in params:
         params['edit_nodes_tester'](G, added_nodes_set, deled_nodes_set, tpl_data)
@@ -617,20 +619,20 @@ def find_node_to_friend_basic(G, head, tpl_data, params, existing_nbs=None):
 
     num_insertion_trials = params.get('num_insertion_trials', 30)
     num_insertion_searches_per_distance = params.get('num_insertion_searches_per_distance', 20)
-    for trial in xrange(num_insertion_trials):
+    for trial in range(num_insertion_trials):
         #sample from np.random.multinomial()
         toss = npr.rand()
         for dis, prob in enumerate(locality_acceptor):
             toss -= prob
             if toss < 0:
                 break
-        for search_num in xrange(num_insertion_searches_per_distance):
+        for search_num in range(num_insertion_searches_per_distance):
             if toss < 0 and len(existing_nbs) > 0:
                 cur_loc = find_next(G=G, start_node=head, weighted_step=weighted_step, blocked=(), rds=rds, sm=sm)
                 blocked = set([head, cur_loc])
                 next_loc = None
                 tail = None
-                for d in xrange(2, dis+1):
+                for d in range(2, dis+1):
                     next_loc = find_next(G=G, start_node=cur_loc, weighted_step=weighted_step, blocked=blocked, rds=rds, sm=sm)
                     if next_loc == None:  #stuck in a self-made corner
                         break
@@ -640,7 +642,7 @@ def find_node_to_friend_basic(G, head, tpl_data, params, existing_nbs=None):
                     tail = next_loc
                     #print 'tail %s at distance %d steps'%(tail,dis)
             else:
-                for i in xrange(G.number_of_nodes()):
+                for i in range(G.number_of_nodes()):
                     if all_nodes == None:
                         all_nodes = G.nodes()
                     candidate = random.choice(all_nodes)
@@ -677,7 +679,7 @@ def find_node_to_friend_hits(G, head, tpl_data, params, existing_nbs=None):
 
     if len(existing_nbs) == 0:
         return None
-    #for trial in xrange(num_insertion_trials):
+    #for trial in range(num_insertion_trials):
     most_hits           = -1
     most_hits_candidate = None
     if True:
@@ -687,13 +689,13 @@ def find_node_to_friend_hits(G, head, tpl_data, params, existing_nbs=None):
             toss -= prob
             if toss < 0:
                 break
-        for search_num in xrange(num_insertion_searches_per_distance):
+        for search_num in range(num_insertion_searches_per_distance):
             cur_loc = find_next(G=G, start_node=head, weighted_step=weighted_step, blocked=(), rds=rds, sm=sm)
             blocked = set([head, cur_loc])
             #hits[cur_loc] = 1
             next_loc = None
             d = 2 #in case the loop is not even started
-            for d in xrange(2, dis+1):
+            for d in range(2, dis+1):
                 cur_loc = find_next(G=G, start_node=cur_loc, weighted_step=weighted_step, blocked=blocked, rds=rds, sm=sm)
                 if cur_loc == None:  #stuck in a self-made corner
                     break
@@ -709,8 +711,8 @@ def find_node_to_friend_hits(G, head, tpl_data, params, existing_nbs=None):
             #    #print 'tail %s at distance %d steps'%(tail,dis)
     if most_hits_candidate != None:
         return most_hits_candidate
-    hits = hits.items()
-    hits.sort(lambda x,y: y[1]-x[1])
+    hits = list(hits.items())
+    hits.sort(key=lambda x: x[1][1]-x[0][1])
     for candidate, h in hits:
         if candidate not in existing_nbs:
             return candidate
@@ -740,10 +742,10 @@ def find_node_to_unfriend(G, head, params, existing_nbs=None):
     #hits = {}
 
     #new_edge_horizon     = params.get('new_edge_horizon', estimate_horizon(G))
-    #for search_num in xrange(num_insertion_searches_per_distance):
+    #for search_num in range(num_insertion_searches_per_distance):
     #    cur_loc = find_next(G=G, start_node=head, weighted_step=weighted_step, blocked=(), rds=rds, sm=sm)
     #    blocked = set([head, cur_loc])
-    #    for d in xrange(2, new_edge_horizon+1):
+    #    for d in range(2, new_edge_horizon+1):
     #        cur_loc = find_next(G=G, start_node=cur_loc, weighted_step=weighted_step, blocked=blocked, rds=rds, sm=sm)
     #        if cur_loc == None:  #stuck in a self-made corner
     #            break
@@ -792,7 +794,7 @@ def generate_graph(original, params=None):
             alg_method           = alg_info[0]
             params2['algorithm'] = alg_info[1]
         else:
-            raise ValueError, 'algorithm parameter should be either callable, the name of a function, or (func,(nested_algorithm))'
+            raise ValueError('algorithm parameter should be either callable, the name of a function, or (func,(nested_algorithm))')
         return alg_method(original=original, params=params2)
 
     simpletesters.validate_params(params)
@@ -819,8 +821,8 @@ def generate_graph(original, params=None):
                                 edge_growth_rate=edge_growth_rate,
                                 params=params)
     if params.get('verbose', True):
-        print 'replica is finished. nn: %d.  time: %.2f sec.'%(replica.number_of_nodes(), time.time()-start_time)
-        print
+        print('replica is finished. nn: %d.  time: %.2f sec.'%(replica.number_of_nodes(), time.time()-start_time))
+        print()
 
     replica      = resample_attributes(G, replica, model_map, params)
     replica.name = getattr(original, 'name', 'graph') + '_replica_' + timeNow()
@@ -936,7 +938,7 @@ def interpolate_nodes(G, c_data, model_map, params):
         #might optionally pass an attribute 'new' in the node
         #num_added_nodes += len(my_trapped_nodes)
     if params.get('verbose', True):
-        print '  from new aggregates: %d nodes, %d edges'%(num_new_nodes,num_new_edges)
+        print('  from new aggregates: %d nodes, %d edges'%(num_new_nodes,num_new_edges))
     #print 'added: %d'%num_added_nodes
 
     if params.get('deep_copying', True):
@@ -971,15 +973,15 @@ def musketeer_snapshots(original, params=None):
 
     num_snapshots = params['num_snapshots']
 
-    for graph_num in xrange(num_snapshots):
+    for graph_num in range(num_snapshots):
         G = graphs[-1]
         replica = generate_graph(original=G, params=params)
         replica.name = 'snapshot_%d'%graph_num
         graphs.append(replica)
 
     if params.get('verbose', True):
-        print 'Snapshots complete.'
-        print
+        print('Snapshots complete.')
+        print()
 
     replica.snapshots = graphs
 
@@ -997,7 +999,7 @@ def musketeer_iterated_cycle(original, params=None):
     params2['node_growth_rate'] = [r/float(num_cycles) for r in params2.get('node_growth_rate', [])]
 
     replica = original
-    for graph_num in xrange(num_cycles):
+    for graph_num in range(num_cycles):
         replica = generate_graph(original=replica, params=params2)
         replica.name = getattr(original, 'name', 'graph') + '_replica_w%d_'%graph_num + timeNow()
 
@@ -1008,17 +1010,17 @@ def new_node_label(G):
 #G is either a graph or a dict/list of existing labels
     num_trials = 100
     label = None
-    for t in xrange(num_trials):
+    for t in range(num_trials):
         label = npr.randint(max_int)
         if label not in G:
             break
     if label == None:
-        raise Exception, 'Could not find a unique label for a newly-added node'
+        raise Exception('Could not find a unique label for a newly-added node')
     return label
 
-def print_warning(params, str):
+def print_warning(params, string):
     if not params.get('suppress_warnings', False):
-        print str
+        print(string)
 
 def resample_attributes(G, replica, model_map, params):
 #inserts attributes to new nodes and edges by COPYING data from existing nodes and edges
@@ -1033,7 +1035,7 @@ def resample_attributes(G, replica, model_map, params):
     G_neighbors = lambda u: G_adj[u].keys()
     if maintain_node_attributes:
         if params.get('verbose', True):
-            print 'Updating node attributes ...'
+            print('Updating node attributes ...')
         for node in replica:
             if replica.node[node] != {}:
                 continue
@@ -1048,7 +1050,7 @@ def resample_attributes(G, replica, model_map, params):
 
     if maintain_edge_attributes and G.number_of_edges() > 0:
         if params.get('verbose', True):
-            print 'Updating edge attributes ...'
+            print('Updating edge attributes ...')
         for edge in replica.edges_iter():
             if replica.get_edge_data(*edge) != {}:
                 continue
@@ -1062,7 +1064,7 @@ def resample_attributes(G, replica, model_map, params):
                 if deep_copying and G.has_edge(modelA, modelB):
                     nodeA, nodeB = modelA, modelB
                 else:
-                    for trial in xrange(G.number_of_edges()):
+                    for trial in range(G.number_of_edges()):
                         nodeA = random.choice(original_nodes)
                         if G_degree(nodeA) == 0:
                             continue
@@ -1082,12 +1084,12 @@ def revise_graph(G, level, node_edit_rate, node_growth_rate, edge_edit_rate, edg
     if no_more_coarse or excess_density:
         if excess_density:
             if params.get('verbose', True):
-                print 'Coarsening stopped due to excess density'
+                print('Coarsening stopped due to excess density')
                 if not no_more_coarse:
-                    print 'Editing at deeper levels is impossible.  CHANGE editing parameters.'
+                    print('Editing at deeper levels is impossible.  CHANGE editing parameters.')
         if params.get('verbose', True):
-            print 'Final coarsening level. nodes: %d, edges: %d'%(G.number_of_nodes(), G.number_of_edges())
-            print '---------------------------------------------'
+            print('Final coarsening level. nodes: %d, edges: %d'%(G.number_of_nodes(), G.number_of_edges()))
+            print('---------------------------------------------')
         if params.get('memoriless_interpolation', False):
             G_prime = flush_graph(G)
         else:
@@ -1254,7 +1256,7 @@ def weighted_step_advanced(G, start_node, weighted_step, blocked, rds, sm=None):
     nb_wt = G.edge[start_node].items()
     if not weighted_step:
         #TODO: in most cases, we are fine just doing 10 random selections, and then giving up - we would just not guarantee that None means fully blocked
-        rds(nb_wt)  #shuffling is O(n); selection is O(1)
+        rds(list(nb_wt))  #shuffling is O(n); selection is O(1)
         for nb,wt in nb_wt:
              if nb not in blocked:
                  return nb
